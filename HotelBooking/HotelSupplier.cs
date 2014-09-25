@@ -17,7 +17,9 @@ namespace HotelBooking
         private Thread[] subscribers = new Thread[5];
         private Int32 ta = 0;
         static Random rng = new Random();
-        public event priceCutEvent priceCut; // Define event
+        public event priceCutEvent priceCut;
+        private Semaphore mute = new Semaphore(1, 1);
+        private Int32 validOrder = 0;
         private Int32 hotelPrice = 10;
 
         public static HotelSupplier getSupplier(int i)
@@ -95,6 +97,57 @@ namespace HotelBooking
                 }
                 this.hotelPrice = p;
                 
+            }
+        }
+
+        public void getAndProcessOrder()
+        {
+            Console.WriteLine(this.hotelSupplierID + " processing starts ");
+            String orderStr = buffer.getOneCell();
+            Order order = Order.decoder(orderStr);
+            // TODO: order processing logic
+            // if valid
+            mute.WaitOne();
+                this.validOrder++;
+                if (this.validOrder == 10)
+                    terminate();
+            mute.Release(1);
+            Console.WriteLine(this.hotelSupplierID + " order processing success: " + this.validOrder);
+            Thread.CurrentThread.Abort();
+        }
+
+        private void terminate()
+        {
+            int i = 0;
+            while (i < ta)
+            {
+                Thread agent = this.subscribers[i];
+                if (agent.ThreadState == ThreadState.Suspended)
+                    Console.WriteLine("suspended thread");
+                    //agent.Resume();
+                agent.Abort();
+                Console.WriteLine(subscribers[i].Name + " is terminated by " + this.hotelSupplierID);
+                i++;
+            }
+            mute.Release(1);
+            Thread.CurrentThread.Abort();
+        }
+
+        public void poll()
+        {
+            while (true)
+            {
+                Thread.Sleep(500);
+                String orderStr = buffer.peekOneCell();
+                if (orderStr != null)
+                {
+                    Order order = Order.decoder(orderStr);
+                    if (order.getReceiverId() == this.hotelSupplierID) {
+                        Console.WriteLine(this.hotelSupplierID + ":POLLED:");
+                        Thread orderProcessing = new Thread(new ThreadStart(this.getAndProcessOrder));
+                        orderProcessing.Start();
+                    }
+                }
             }
         }
 

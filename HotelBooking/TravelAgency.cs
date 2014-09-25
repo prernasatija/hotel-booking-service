@@ -14,11 +14,11 @@ namespace HotelBooking
         {   //for starting thread
             Int32 p = rng.Next(1, 3);
             HotelSupplier hotelSupplier = HotelSupplier.getSupplier(p-1);//new HotelSupplier();
-            hotelSupplier.priceCut += new priceCutEvent(this.roomsOnSale);
+            //hotelSupplier.priceCut += new priceCutEvent(this.roomsOnSale);
 
             Console.WriteLine(Thread.CurrentThread.Name + " subscribing to " + p);
             hotelSupplier.subscribe(Thread.CurrentThread);
-            for (Int32 i = 0; i < 2; i++)
+            for (Int32 i = 0; i < 20; i++)
             {
                 Int32 p1 = hotelSupplier.getPrice();
                 Console.WriteLine(Thread.CurrentThread.Name + ": SUSPENDED");
@@ -26,8 +26,25 @@ namespace HotelBooking
                 Console.WriteLine(Thread.CurrentThread.Name + ": RESUMED");
                 Int32 p2 = hotelSupplier.getPrice();
                 Console.WriteLine("Travel Agent:: {0} ordering from HS{1}", Thread.CurrentThread.Name, p);
+
+                // TODO: roomsCount depending on change in price.
+                Int32 roomsCount = rng.Next(1, 10);
+                Int32 amount = roomsCount * p2;
+                Int32 senderId = Convert.ToInt32(Thread.CurrentThread.Name);
+                Int32 cardNo = 0;
+
+                for (int j = 0; j < 5; j++)
+                {
+                    cardNo = cardNo * 10 + senderId;
+                }
+                Order order = new Order(senderId, cardNo, p, amount);
+                String strOrder = Order.encoder(order);
+                Console.WriteLine("Travel Agent:: {0} order placed HS{1}", Thread.CurrentThread.Name, p);
+                buffer.setOneCell(strOrder);
             }
         }
+
+
         public void roomsOnSale(Int32 p)
         {  // Event handler
             Console.WriteLine(Thread.CurrentThread.Name + " -> roomsOnSale::");

@@ -21,23 +21,30 @@ namespace HotelBooking
             empty.WaitOne();
             // TODO: semaphore
             mute.WaitOne();
+                Console.WriteLine("Set to Buffer: " + inOffset);
                 buffer[inOffset] = input;
-                inOffset = inOffset % N;
-            mute.Release(1);
-            Int32 count = full.Release();
-            full.Release(count + 1);
+                inOffset = (inOffset + 1) % N;
+                //Int32 count = full.Release() + 1;
+            mute.Release();
+            full.Release();
         }
 
         public String getOneCell()
         {
             full.WaitOne();
             mute.WaitOne();
+                Console.WriteLine("Get from Buffer: " + outOffset);
                 String ret = buffer[outOffset];
-                outOffset = outOffset % N;
-            mute.Release(1);
-            Int32 count = empty.Release();
-            empty.Release(count + 1);
+                outOffset = (outOffset + 1) % N;
+                //Int32 count = empty.Release() + 1;
+            mute.Release();
+            empty.Release();
             return ret;
+        }
+
+        public String peekOneCell()
+        {
+            return buffer[outOffset];
         }
     }
 }

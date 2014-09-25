@@ -13,6 +13,23 @@ namespace HotelBooking
         private Int32 receiverId;
         private Int32 amount;
 
+        public Int32 getSenderId()
+        {
+            return this.senderId;
+        }
+        public Int32 getCardNo()
+        {
+            return this.cardNo;
+        }
+        public Int32 getReceiverId()
+        {
+            return this.receiverId;
+        }
+        public Int32 getAmount()
+        {
+            return this.amount;
+        }
+
         public Order(Int32 senderId, Int32 cardNo, Int32 receiverId, Int32 amount)
         {
             this.senderId = senderId;
