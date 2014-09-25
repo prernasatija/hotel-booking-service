@@ -8,46 +8,54 @@ namespace HotelBooking
 {
     class TravelAgency
     {
+        
         private MultiCellBuffer buffer;
         static Random rng = new Random();
         public void travelAgencyFunc()
         {   //for starting thread
-            Int32 p = rng.Next(1, 3);
-            HotelSupplier hotelSupplier = HotelSupplier.getSupplier(p-1);//new HotelSupplier();
-            //hotelSupplier.priceCut += new priceCutEvent(this.roomsOnSale);
-
-            Console.WriteLine(Thread.CurrentThread.Name + " subscribing to " + p);
-            hotelSupplier.subscribe(Thread.CurrentThread);
-            for (Int32 i = 0; i < 20; i++)
+            try
             {
-                Int32 p1 = hotelSupplier.getPrice();
-                Console.WriteLine(Thread.CurrentThread.Name + ": SUSPENDED");
-                Thread.CurrentThread.Suspend();
-                Console.WriteLine(Thread.CurrentThread.Name + ": RESUMED");
-                Int32 p2 = hotelSupplier.getPrice();
-                Console.WriteLine("Travel Agent:: {0} ordering from HS{1}", Thread.CurrentThread.Name, p);
+                Int32 p = rng.Next(1, 3);
+                HotelSupplier hotelSupplier = HotelSupplier.getSupplier(p - 1);//new HotelSupplier();
+                //hotelSupplier.priceCut += new priceCutEvent(this.roomsOnSale);
 
-                // TODO: roomsCount depending on change in price.
-                Int32 roomsCount = rng.Next(1, 10);
-                Int32 amount = roomsCount * p2;
-                Int32 senderId = Convert.ToInt32(Thread.CurrentThread.Name);
-                Int32 cardNo = 0;
-
-                for (int j = 0; j < 5; j++)
+                Console.WriteLine("TA:" + Thread.CurrentThread.Name + " subscribing to HS:" + p);
+                hotelSupplier.subscribe(Thread.CurrentThread);
+                for (Int32 i = 0; i < 20; i++)
                 {
-                    cardNo = cardNo * 10 + senderId;
+                    Int32 p1 = hotelSupplier.getPrice();
+                    Console.WriteLine("TA:" + Thread.CurrentThread.Name + ": SUSPENDED");
+                    Thread.CurrentThread.Suspend();
+                    Console.WriteLine("TA:" + Thread.CurrentThread.Name + ": RESUMED");
+                    Int32 p2 = hotelSupplier.getPrice();
+                    Console.WriteLine("Travel Agent:: {0} order sent for HS{1}", Thread.CurrentThread.Name, p);
+
+                    // TODO: roomsCount depending on change in price.
+                    Int32 roomsCount = rng.Next(1, 10);
+                    Int32 amount = roomsCount * p2;
+                    Int32 senderId = Convert.ToInt32(Thread.CurrentThread.Name);
+                    Int32 cardNo = 0;
+
+                    for (int j = 0; j < 5; j++)
+                    {
+                        cardNo = cardNo * 10 + senderId;
+                    }
+                    Order order = new Order(senderId, cardNo, p, amount);
+                    String strOrder = Order.encoder(order);
+                    //Console.WriteLine("Travel Agent:: {0} order placed HS{1}", Thread.CurrentThread.Name, p);
+                    buffer.setOneCell(strOrder);
                 }
-                Order order = new Order(senderId, cardNo, p, amount);
-                String strOrder = Order.encoder(order);
-                Console.WriteLine("Travel Agent:: {0} order placed HS{1}", Thread.CurrentThread.Name, p);
-                buffer.setOneCell(strOrder);
+            }
+            catch (ThreadInterruptedException exception)
+            {
+                Console.WriteLine("TA:" + Thread.CurrentThread.Name + "Thread Interrupted");
             }
         }
 
 
         public void roomsOnSale(Int32 p)
         {  // Event handler
-            Console.WriteLine(Thread.CurrentThread.Name + " -> roomsOnSale::");
+            Console.WriteLine("HS:" + Thread.CurrentThread.Name + " -> roomsOnSale::");
             Int32 id = Convert.ToInt32(Thread.CurrentThread.Name);
             HotelSupplier supplier = HotelSupplier.getSupplier(id-1);
             supplier.resumeSubscribers();

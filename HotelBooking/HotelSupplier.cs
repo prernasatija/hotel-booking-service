@@ -34,7 +34,8 @@ namespace HotelBooking
 
         public void subscribe(Thread travelAgent)
         {
-            Console.WriteLine(travelAgent.Name + " subscribed as " + ta+ "th to " + this.hotelSupplierID);
+            // TODO:::::APPLY SEMAPHORE
+            Console.WriteLine("TA:" + travelAgent.Name + " subscribed as " + ta + "th to HS:" + this.hotelSupplierID);
             this.subscribers[ta] = travelAgent;
             ta++;
         }
@@ -44,9 +45,11 @@ namespace HotelBooking
             int i = 0;
             while (i < ta)
             {
-                Console.WriteLine(subscribers[i].Name + " is Resuming from " +this.hotelSupplierID);
-                if (this.subscribers[i].ThreadState == ThreadState.Suspended) 
+                if (this.subscribers[i].ThreadState == ThreadState.Suspended)
+                {
+                    Console.WriteLine("TA:" + subscribers[i].Name + " is Resuming from HS:" + this.hotelSupplierID);
                     this.subscribers[i].Resume();
+                }
                 i++;
             }
         }
@@ -80,9 +83,10 @@ namespace HotelBooking
         }
         public void pricingModel()
         {
-            for (Int32 i = 0; i < 50; i++)
+            Thread.Sleep(1000);
+            while(this.validOrder < 5 && ta > 0)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(200);
                 // Take the order from the queue of the orders;
                 // Decide the price based on the orders
                 Int32 p = rng.Next(5, 10); // Generate a random price
@@ -91,29 +95,33 @@ namespace HotelBooking
                 { // a price cut 
                     if (this.priceCut != null)
                     { // there is at least a subscriber
-                        Console.WriteLine("Price Reduced " +Thread.CurrentThread.Name);
+                        Console.WriteLine("Price Reduced for HS:" +Thread.CurrentThread.Name);
                         this.priceCut(p); // emit event to subscribers
                     }
                 }
                 this.hotelPrice = p;
                 
             }
+            Console.WriteLine("Terminating HS" + Thread.CurrentThread.Name);
+            terminate();
         }
 
         public void getAndProcessOrder()
         {
-            Console.WriteLine(this.hotelSupplierID + " processing starts ");
+            Console.WriteLine("HS:" + this.hotelSupplierID + " processing starts....");
             String orderStr = buffer.getOneCell();
             Order order = Order.decoder(orderStr);
             // TODO: order processing logic
             // if valid
             mute.WaitOne();
+            if(this.validOrder < 5){
                 this.validOrder++;
-                if (this.validOrder == 10)
-                    terminate();
-            mute.Release(1);
-            Console.WriteLine(this.hotelSupplierID + " order processing success: " + this.validOrder);
-            Thread.CurrentThread.Abort();
+                Console.WriteLine("HS:" + this.hotelSupplierID + " no. of order processed successfully: " + this.validOrder);
+            }
+            else{
+                // discard the order
+            }
+            mute.Release();
         }
 
         private void terminate()
@@ -123,30 +131,48 @@ namespace HotelBooking
             {
                 Thread agent = this.subscribers[i];
                 if (agent.ThreadState == ThreadState.Suspended)
-                    Console.WriteLine("suspended thread");
-                    //agent.Resume();
-                agent.Abort();
-                Console.WriteLine(subscribers[i].Name + " is terminated by " + this.hotelSupplierID);
+                {
+                    agent.Resume();
+                }
+                Console.WriteLine("Terminating TA" + agent.Name);
+                agent.Interrupt();
                 i++;
             }
-            mute.Release(1);
-            Thread.CurrentThread.Abort();
         }
 
         public void poll()
         {
-            while (true)
+            int i = 0;
+            Boolean flag = true;
+            while (flag)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(200);
                 String orderStr = buffer.peekOneCell();
                 if (orderStr != null)
                 {
                     Order order = Order.decoder(orderStr);
                     if (order.getReceiverId() == this.hotelSupplierID) {
-                        Console.WriteLine(this.hotelSupplierID + ":POLLED:");
-                        Thread orderProcessing = new Thread(new ThreadStart(this.getAndProcessOrder));
-                        orderProcessing.Start();
+                        if (this.validOrder < 5)
+                        {
+                            i = 0;
+                            Console.WriteLine("HS:" + this.hotelSupplierID + ":POLLED:");
+                            Thread orderProcessing = new Thread(new ThreadStart(this.getAndProcessOrder));
+                            orderProcessing.Start();
+                        }
+                        else
+                        {
+                            i = i + 3;
+                            orderStr = buffer.getOneCell();
+                        }
                     }
+                    else { i = i + 1; }
+                }
+                if (i >= 9)
+                {
+                    // TODO:
+                    Console.WriteLine("HS:" + this.hotelSupplierID + " poller aborted.");
+                    //Thread.CurrentThread.Abort();
+                    flag = false;
                 }
             }
         }

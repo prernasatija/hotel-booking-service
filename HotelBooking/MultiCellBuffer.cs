@@ -24,7 +24,6 @@ namespace HotelBooking
                 Console.WriteLine("Set to Buffer: " + inOffset);
                 buffer[inOffset] = input;
                 inOffset = (inOffset + 1) % N;
-                //Int32 count = full.Release() + 1;
             mute.Release();
             full.Release();
         }
@@ -36,7 +35,6 @@ namespace HotelBooking
                 Console.WriteLine("Get from Buffer: " + outOffset);
                 String ret = buffer[outOffset];
                 outOffset = (outOffset + 1) % N;
-                //Int32 count = empty.Release() + 1;
             mute.Release();
             empty.Release();
             return ret;

@@ -10,21 +10,6 @@ namespace HotelBooking
     {
         static void Main(string[] args)
         {
-            //HotelSupplier hotelSupplier = new HotelSupplier(); //multiple objects
-            //MultiCellBuffer buffer = new MultiCellBuffer();
-            //hotelSupplier.setBuffer(buffer);
-            //Thread priceModel = new Thread(new ThreadStart(hotelSupplier.pricingModel));
-            //priceModel.Start();         // Start one farmer thread
-            //TravelAgency travelAgency = new TravelAgency();
-            //travelAgency.setBuffer(buffer);
-            //HotelSupplier.priceCut += new priceCutEvent(travelAgency.roomsOnSale);
-            //Thread[] agencies = new Thread[5];
-            //for (int i = 0; i < 2; i++)
-            //{   // Start N retailer threads
-            //    agencies[i] = new Thread(new ThreadStart(travelAgency.travelAgencyFunc));
-            //    agencies[i].Name = (i + 1).ToString();
-            //    agencies[i].Start();
-            //}
             MultiCellBuffer buffer = new MultiCellBuffer();
             TravelAgency travelAgency = new TravelAgency();
             travelAgency.setBuffer(buffer);
