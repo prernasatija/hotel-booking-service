@@ -133,7 +133,7 @@ namespace HotelBooking
             {
                 Int32 newPrice = ((2*maxRooms)/availableRooms)*rng.Next(5, 10);
                 changePrice(newPrice);
-                Thread.Sleep(3000);
+                Thread.Sleep(2500);
             }
             Console.WriteLine("Terminating Hotel Supplier " + Thread.CurrentThread.Name);
             terminate();
