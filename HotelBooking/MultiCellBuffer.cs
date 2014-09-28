@@ -21,7 +21,7 @@ namespace HotelBooking
             empty.WaitOne();
             // TODO: semaphore
             mute.WaitOne();
-                Console.WriteLine("Set to Buffer: " + inOffset);
+                //Console.WriteLine("Set to Buffer: " + inOffset);
                 buffer[inOffset] = input;
                 inOffset = (inOffset + 1) % N;
             mute.Release();
@@ -32,7 +32,7 @@ namespace HotelBooking
         {
             full.WaitOne();
             mute.WaitOne();
-                Console.WriteLine("Get from Buffer: " + outOffset);
+                //Console.WriteLine("Get from Buffer: " + outOffset);
                 String ret = buffer[outOffset];
                 outOffset = (outOffset + 1) % N;
             mute.Release();
