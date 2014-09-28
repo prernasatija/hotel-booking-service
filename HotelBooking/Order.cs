@@ -13,6 +13,25 @@ namespace HotelBooking
         private Int32 receiverId;
         private Int32 amount;
 
+        // getters methods
+        public Int32 getSenderId()
+        {
+            return this.senderId;
+        }
+        public Int32 getCardNo()
+        {
+            return this.cardNo;
+        }
+        public Int32 getReceiverId()
+        {
+            return this.receiverId;
+        }
+        public Int32 getAmount()
+        {
+            return this.amount;
+        }
+
+        // 4 argument constructor.
         public Order(Int32 senderId, Int32 cardNo, Int32 receiverId, Int32 amount)
         {
             this.senderId = senderId;
@@ -21,6 +40,7 @@ namespace HotelBooking
             this.amount = amount;
         }
 
+        // encodes the order object to a string.
         public static String encoder(Order order)
         {
             String ret = Convert.ToString(order.senderId) + "|";
@@ -30,6 +50,7 @@ namespace HotelBooking
             return ret;
         }
 
+        // decodes the input encoded string to get the Order object.
         public static Order decoder( String stringOrder)
         {
             String[] split = stringOrder.Split('|');

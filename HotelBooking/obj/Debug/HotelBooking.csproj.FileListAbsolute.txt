@@ -6,3 +6,11 @@ C:\Users\Ishh\Documents\Visual Studio 2013\Projects\HotelBooking\HotelBooking\bi
 C:\Users\Ishh\Documents\Visual Studio 2013\Projects\HotelBooking\HotelBooking\bin\Debug\HotelBooking.pdb
 C:\Users\Ishh\Documents\Visual Studio 2013\Projects\HotelBooking\HotelBooking\obj\Debug\HotelBooking.exe
 C:\Users\Ishh\Documents\Visual Studio 2013\Projects\HotelBooking\HotelBooking\obj\Debug\HotelBooking.pdb
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\bin\Debug\HotelBooking.exe.config
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Debug\HotelBooking.exe
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Debug\HotelBooking.pdb
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\bin\Debug\HotelBooking.exe
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\bin\Debug\HotelBooking.pdb
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Debug\HotelBooking.csprojResolveAssemblyReference.cache
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Debug\HotelBooking.Properties.Resources.resources
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Debug\HotelBooking.csproj.GenerateResource.Cache

@@ -1,0 +1,8 @@
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\bin\Release\HotelBooking.exe.config
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\bin\Release\HotelBooking.exe
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\bin\Release\HotelBooking.pdb
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Release\HotelBooking.csprojResolveAssemblyReference.cache
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Release\HotelBooking.Properties.Resources.resources
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Release\HotelBooking.csproj.GenerateResource.Cache
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Release\HotelBooking.exe
+C:\Users\Ishh\git_projects\hotel-booking-service\HotelBooking\obj\Release\HotelBooking.pdb

@@ -1,4 +1,22 @@
-﻿using System;
+﻿//=============================================
+// Implementation of a hotel booking senario
+//=============================================
+
+/* Project 2:
+ *
+ * Learning: Event-driven programming, Multi-Threading, Synchronization, producer consumer problem.
+ * 
+ * This program is written as a project of course CSE 598: Distributed Software Development
+ * Professor: Yinong Chen
+ * Authors: 1. Prerna Satija (33.33%)
+ *          2. Nitesh Kedia (33.33%)
+ *          3. Nishant Bansal (33.34%)
+ * Team Name: Team Megaminds-598
+ * Start Date: 09/15/2014
+ * Submission Date: 09/28/2014
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,44 +28,46 @@ namespace HotelBooking
     {
         static void Main(string[] args)
         {
-            //HotelSupplier hotelSupplier = new HotelSupplier(); //multiple objects
-            //MultiCellBuffer buffer = new MultiCellBuffer();
-            //hotelSupplier.setBuffer(buffer);
-            //Thread priceModel = new Thread(new ThreadStart(hotelSupplier.pricingModel));
-            //priceModel.Start();         // Start one farmer thread
-            //TravelAgency travelAgency = new TravelAgency();
-            //travelAgency.setBuffer(buffer);
-            //HotelSupplier.priceCut += new priceCutEvent(travelAgency.roomsOnSale);
-            //Thread[] agencies = new Thread[5];
-            //for (int i = 0; i < 2; i++)
-            //{   // Start N retailer threads
-            //    agencies[i] = new Thread(new ThreadStart(travelAgency.travelAgencyFunc));
-            //    agencies[i].Name = (i + 1).ToString();
-            //    agencies[i].Start();
-            //}
-            MultiCellBuffer buffer = new MultiCellBuffer();
-            Thread[] supplier = new Thread[3];
-            HotelSupplier[] hotelSupplier = new HotelSupplier[3];
-            for (int j = 0; j < 3; j++)
+            init(); // to initialize some parameters.
+            TravelAgency travelAgency = new TravelAgency();
+            for (int j = 0; j < HotelSupplier.maxHotelSupplier; j++)
             {
-                hotelSupplier[j] = new HotelSupplier();
-                hotelSupplier[j].setBuffer(buffer);
-                hotelSupplier[j].hotelSupplierID = j + 1;
-                supplier[j] = new Thread(new ThreadStart(hotelSupplier[j].pricingModel));
-                supplier[j].Name = (j + 1).ToString() ;
-                supplier[j].Start();
+                HotelSupplier hotelSupplier = new HotelSupplier(j + 1);
+                hotelSupplier.priceCut += new priceCutEvent(travelAgency.roomsOnSale);
+
+                // start a pricing model thread for this hotel supplier
+                Thread supplier = new Thread(new ThreadStart(hotelSupplier.pricingModel));
+                supplier.Name = (j + 1).ToString();
+                supplier.Start();
+
+                // start a polling thread for this hotel supplier
+                Thread polling = new Thread(new ThreadStart(hotelSupplier.poll));
+                polling.Name = (j + 1).ToString();
+                polling.Start();
             }
 
-            TravelAgency travelAgency = new TravelAgency();
-            travelAgency.setBuffer(buffer);
-            
-            Thread[] agencies = new Thread[5];
-            for (int i = 0; i < 4; i++)
-            {   // Start N retailer threads
-                agencies[i] = new Thread(new ThreadStart(travelAgency.travelAgencyFunc));
-                agencies[i].Name = "TA" + (i + 1).ToString();
-                agencies[i].Start();
+            for (int i = 0; i < TravelAgency.maxTravelAgents; i++)
+            {
+                // start a travel agency thread.
+                Thread agency = new Thread(new ThreadStart(travelAgency.travelAgencyFunc));
+                agency.Name = (i + 1).ToString();
+                agency.Start();
             }
+        }
+
+        // Initialze some parameters.
+        public static void init()
+        {
+            HotelSupplier.maxHotelSupplier = 3; // hotel supplier count.
+            TravelAgency.maxTravelAgents = 5; // travel agent count
+
+            MultiCellBuffer buffer = new MultiCellBuffer();
+            HotelSupplier.setBuffer(buffer); // set order buffer
+            TravelAgency.setBuffer(buffer); // set order buffer
+
+            MultiCellBuffer confirmationBuffer = new MultiCellBuffer();
+            HotelSupplier.setConfirmationBuffer(confirmationBuffer); // set confirmation buffer
+            TravelAgency.setConfirmationBuffer(confirmationBuffer); // set confirmation buffer
         }
     }
 }
