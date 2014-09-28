@@ -1,4 +1,21 @@
-﻿using System;
+﻿//=============================================
+// Implementation of a hotel booking senario
+//=============================================
+
+/* Project 2:
+ *
+ * Learning: Event-driven programming, Multi-Threading, Synchronization, producer consumer problem.
+ * 
+ * This program is written as a project of course CSE 598: Distributed Software Development
+ * Professor: Yinong Chen
+ * Authors: 1. Prerna Satija (33.33%)
+ *          2. Nitesh Kedia (33.33%)
+ *          3. Nishant Bansal (33.34%)
+ * Start Date: 09/15/2014
+ * Submission Date: 09/28/2014
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,37 +27,46 @@ namespace HotelBooking
     {
         static void Main(string[] args)
         {
-            MultiCellBuffer buffer = new MultiCellBuffer();
-            MultiCellBuffer confirmationBuffer = new MultiCellBuffer();
-            HotelSupplier.setBuffer(buffer);
-            HotelSupplier.setConfirmationBuffer(confirmationBuffer);
-            TravelAgency.maxTravelAgents = 5;
+            init(); // to initialize some parameters.
             TravelAgency travelAgency = new TravelAgency();
-            TravelAgency.setBuffer(buffer);
-            TravelAgency.setConfirmationBuffer(confirmationBuffer);
-            Thread[] supplier = new Thread[3];
-            Thread[] polling = new Thread[3];
-            HotelSupplier[] hotelSupplier = new HotelSupplier[3];
-            for (int j = 0; j < 3; j++)
+            for (int j = 0; j < HotelSupplier.maxHotelSupplier; j++)
             {
-                hotelSupplier[j] = new HotelSupplier();
-                
-                hotelSupplier[j].priceCut += new priceCutEvent(travelAgency.roomsOnSale);
-                polling[j] = new Thread(new ThreadStart(hotelSupplier[j].poll));
-                polling[j].Start();
-                hotelSupplier[j].hotelSupplierID = j + 1;
-                supplier[j] = new Thread(new ThreadStart(hotelSupplier[j].pricingModel));
-                supplier[j].Name = (j + 1).ToString() ;
-                supplier[j].Start();
+                HotelSupplier hotelSupplier = new HotelSupplier(j + 1);
+                hotelSupplier.priceCut += new priceCutEvent(travelAgency.roomsOnSale);
+
+                // start a pricing model thread for this hotel supplier
+                Thread supplier = new Thread(new ThreadStart(hotelSupplier.pricingModel));
+                supplier.Name = (j + 1).ToString();
+                supplier.Start();
+
+                // start a polling thread for this hotel supplier
+                Thread polling = new Thread(new ThreadStart(hotelSupplier.poll));
+                polling.Name = (j + 1).ToString();
+                polling.Start();
             }
 
-            Thread[] agencies = new Thread[TravelAgency.maxTravelAgents];
             for (int i = 0; i < TravelAgency.maxTravelAgents; i++)
-            {   // Start N retailer threads
-                agencies[i] = new Thread(new ThreadStart(travelAgency.travelAgencyFunc));
-                agencies[i].Name = (i + 1).ToString();
-                agencies[i].Start();
+            {
+                // start a travel agency thread.
+                Thread agency = new Thread(new ThreadStart(travelAgency.travelAgencyFunc));
+                agency.Name = (i + 1).ToString();
+                agency.Start();
             }
+        }
+
+        // Initialze some parameters.
+        public static void init()
+        {
+            HotelSupplier.maxHotelSupplier = 3; // hotel supplier count.
+            TravelAgency.maxTravelAgents = 5; // travel agent count
+
+            MultiCellBuffer buffer = new MultiCellBuffer();
+            HotelSupplier.setBuffer(buffer); // set order buffer
+            TravelAgency.setBuffer(buffer); // set order buffer
+
+            MultiCellBuffer confirmationBuffer = new MultiCellBuffer();
+            HotelSupplier.setConfirmationBuffer(confirmationBuffer); // set confirmation buffer
+            TravelAgency.setConfirmationBuffer(confirmationBuffer); // set confirmation buffer
         }
     }
 }

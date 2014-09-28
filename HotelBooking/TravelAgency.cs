@@ -8,41 +8,48 @@ namespace HotelBooking
 {
     class TravelAgency
     {
-        public static Int32 maxTravelAgents;
-        private static MultiCellBuffer buffer;
-        private static MultiCellBuffer confirmationBuffer;
-        static Random rng = new Random();
-        private DateTime startTime;
+        public static Int32 maxTravelAgents; // maximum travel agents
+        private static MultiCellBuffer buffer; // order multi-cell buffer
+        private static MultiCellBuffer confirmationBuffer; // confirmation multi-cell buffer
+        private static Random rng = new Random();
+        private DateTime startTime; // to record the start time of a order.
 
+        // setter methods
+        public static void setBuffer(MultiCellBuffer buf)
+        {
+            buffer = buf;
+        }
+
+        public static void setConfirmationBuffer(MultiCellBuffer buf)
+        {
+            confirmationBuffer = buf;
+        }
+
+        // travel agency thread.
         public void travelAgencyFunc()
-        {   //for starting thread
+        {
             try
             {
-                Int32 p = rng.Next(1, 3);
-                HotelSupplier hotelSupplier = HotelSupplier.getSupplier(p - 1);
+                // get a random hotelSupplier to subscribe.
+                HotelSupplier hotelSupplier = HotelSupplier.getRandomSupplier();
 
-                Console.WriteLine("TA:" + Thread.CurrentThread.Name + " subscribing to HS:" + p);
+                Console.WriteLine("Travel Agent " + Thread.CurrentThread.Name + " subscribing to Hotel Supplier " + hotelSupplier.getHotelSupplierID());
                 hotelSupplier.subscribe(Thread.CurrentThread);
                 while(hotelSupplier.validOrderCount <= hotelSupplier.maxOrder)
                 {
-                    Int32 p1 = hotelSupplier.getPrice();
-                    //Console.WriteLine("TA:" + Thread.CurrentThread.Name + ": SUSPENDED");
+                    Int32 oldPrice = hotelSupplier.getPrice();
+                    // Suspend the thread till next price cut event.
                     Thread.CurrentThread.Suspend();
-                    //Console.WriteLine("TA:" + Thread.CurrentThread.Name + ": RESUMED");
-                    Int32 p2 = hotelSupplier.getPrice();
+                    Int32 newPrice = hotelSupplier.getPrice();
                     
+                    // create an order
+                    Order order = createOrder(hotelSupplier, newPrice - oldPrice);
+                    String strOrder = Order.encoder(order); // encode the order
+                    startTime = System.DateTime.Now; // store the order time
+                    Console.WriteLine("Travel Agent {0}:: Order sent at " + startTime.TimeOfDay + " of {1} rooms to HS{2}", Thread.CurrentThread.Name, order.getAmount(), hotelSupplier.getHotelSupplierID());
+                    buffer.setOneCell(strOrder); // place the order in the buffer
 
-                    // TODO: roomsCount depending on change in price.
-                    Int32 roomsCount = rng.Next(1, 5);
-                    Int32 senderId = Convert.ToInt32(Thread.CurrentThread.Name);
-                    BankService bankService = new BankService();
-                    Int32 cardNo = bankService.getCreditCard(senderId-1);
-
-                    Order order = new Order(senderId, cardNo, p, roomsCount);
-                    String strOrder = Order.encoder(order);
-                    startTime = System.DateTime.Now;
-                    Console.WriteLine("Travel Agent{0}:: Order sent at " +startTime.TimeOfDay+ " of {1} rooms to HS{2}", Thread.CurrentThread.Name, roomsCount, p);
-                    buffer.setOneCell(strOrder);
+                    // start a polling thread to check for confirmation.
                     Thread poller = new Thread(new ThreadStart(this.pollForConfirmation));
                     poller.Name = Thread.CurrentThread.Name;
                     poller.Start();
@@ -54,6 +61,18 @@ namespace HotelBooking
             }
         }
 
+        // Create an order for the hotelSupplier.
+        private Order createOrder(HotelSupplier hotelSupplier, Int32 discount)
+        {
+            Int32 roomsCount = rng.Next(1, 5);
+            Int32 senderId = Convert.ToInt32(Thread.CurrentThread.Name);
+            BankService bankService = new BankService();
+            Int32 cardNo = bankService.getCreditCard(senderId - 1);
+
+            return new Order(senderId, cardNo, hotelSupplier.getHotelSupplierID(), roomsCount);
+        }
+
+        // The polling thread to check if the order was confirmed.
         private void pollForConfirmation()
         {
             Thread.Sleep(300);
@@ -70,7 +89,7 @@ namespace HotelBooking
                         if (split[0] == "confirmed")
                         {
                             TimeSpan confirmationTime = System.DateTime.Now - this.startTime;
-                            Console.WriteLine("TA" + Thread.CurrentThread.Name + ":: Order " + split[0] + " and charged: $" + split[2] + " in " + confirmationTime.Milliseconds + " milliseconds");
+                            Console.WriteLine("Travel Agent " + Thread.CurrentThread.Name + ":: Order " + split[0] + " and charged: $" + split[2] + " in " + confirmationTime.Milliseconds + " milliseconds");
                         }
                         flag = false;
                     }
@@ -78,20 +97,13 @@ namespace HotelBooking
             }
         }
 
+        // Event handler: mapped to the priceCut of hotelSupplier
         public void roomsOnSale(Int32 p)
-        {  // Event handler
-            Console.WriteLine("HS:" + Thread.CurrentThread.Name + " -> roomsOnSale::");
+        {
+            Console.WriteLine("Hotel Supplier " + Thread.CurrentThread.Name + ": **DISCOUNT** Rooms On Sale!!");
             Int32 id = Convert.ToInt32(Thread.CurrentThread.Name);
             HotelSupplier supplier = HotelSupplier.getSupplier(id-1);
             supplier.resumeSubscribers();
-        }
-        public static void setBuffer(MultiCellBuffer buf)
-        {
-            buffer = buf;
-        }
-        public static void setConfirmationBuffer(MultiCellBuffer buf)
-        {
-            confirmationBuffer = buf;
         }
     }
 }

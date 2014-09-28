@@ -8,31 +8,31 @@ namespace HotelBooking
 {
     class MultiCellBuffer
     {
-        private static Int32 N = 3;
+        private static Int32 N = 3; // size of buffer
         private String[] buffer = new String[N];
-        private Int32 inOffset = 0;
-        private Int32 outOffset = 0;
+        private Int32 inOffset = 0; // input index
+        private Int32 outOffset = 0; // output index
+        // Semaphores
         private Semaphore full = new Semaphore(0, N);
         private Semaphore empty = new Semaphore(N, N);
         private Semaphore mute = new Semaphore(1, 1);
 
+        // Sets the input string in the buffer.
         public void setOneCell(String input)
         {
             empty.WaitOne();
-            // TODO: semaphore
             mute.WaitOne();
-                //Console.WriteLine("Set to Buffer: " + inOffset);
                 buffer[inOffset] = input;
                 inOffset = (inOffset + 1) % N;
             mute.Release();
             full.Release();
         }
 
+        // Returns the string on the next available index.
         public String getOneCell()
         {
             full.WaitOne();
             mute.WaitOne();
-                //Console.WriteLine("Get from Buffer: " + outOffset);
                 String ret = buffer[outOffset];
                 outOffset = (outOffset + 1) % N;
             mute.Release();
@@ -40,6 +40,7 @@ namespace HotelBooking
             return ret;
         }
 
+        // Returns the string but doesn't remove it. Used for polling.
         public String peekOneCell()
         {
             return buffer[outOffset];
